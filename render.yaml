@@ -73,7 +73,7 @@ services:
         fromService:
           type: web
           name: conversation-service
-          property: url        # https URL of the API
+          property: host       # public hostname; UI prepends https://
       - key: VITE_GOOGLE_CLIENT_ID
         sync: false            # same Google client id as the backend
     routes:

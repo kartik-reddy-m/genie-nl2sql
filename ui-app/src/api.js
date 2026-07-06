@@ -1,6 +1,8 @@
 import { getToken, setToken } from "./auth.js";
 
-const BASE = import.meta.env.VITE_CONVERSATION_API || "http://localhost:8000";
+let BASE = import.meta.env.VITE_CONVERSATION_API || "http://localhost:8000";
+// Render's fromService provides a bare host (no scheme); make it absolute.
+if (BASE && !/^https?:\/\//.test(BASE)) BASE = "https://" + BASE;
 
 // The App registers a callback so it can force re-login when the token expires.
 let onAuthExpired = null;
