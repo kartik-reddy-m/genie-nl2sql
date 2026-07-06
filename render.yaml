@@ -54,10 +54,7 @@ services:
     envVars:
       - fromGroup: internal-auth
       - key: GENIE_SERVICE_URL
-        fromService:
-          type: web
-          name: genie-service
-          property: host        # public hostname; app prepends https://
+        sync: false             # set to genie-service PUBLIC url: https://genie-service-xxxx.onrender.com
       - key: REDIS_URL
         fromService:
           type: keyvalue
@@ -81,10 +78,7 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_CONVERSATION_API
-        fromService:
-          type: web
-          name: conversation-service
-          property: host        # public hostname; UI prepends https://
+        sync: false             # set to conversation-service PUBLIC url: https://conversation-service-xxxx.onrender.com
       - key: VITE_GOOGLE_CLIENT_ID
         sync: false
     routes:
