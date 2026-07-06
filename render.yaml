@@ -1,52 +1,63 @@
-# Render Blueprint for the genie-nl2sql stack.
-# Deploy: push this repo to GitHub, then in Render: New > Blueprint > pick the repo.
+# Render Blueprint for the genie-nl2sql stack — ALL FREE TIER.
+# Deploy: push to GitHub, then Render: New > Blueprint > pick the repo.
 # Secrets marked `sync: false` must be filled in the Render dashboard.
 #
-# Components:
-#   genie-redis          - managed Key Value (Redis) store
-#   genie-service        - PRIVATE service (holds the Databricks PAT; not public)
-#   conversation-service - public API, protected by Google token verification
-#   ui-app               - static site (Vite build) with Google Sign-In
+# genie-service is a public web service (Render has no free private services),
+# but it is protected by a shared INTERNAL_API_KEY that Render generates and
+# injects into both backends via the `internal-auth` env group. Only
+# conversation-service knows the key, so only it can call genie-service.
+#
+# NOTE: free web services sleep after ~15 min idle; the first request then takes
+# ~30-60s to wake.
+
+envVarGroups:
+  - name: internal-auth
+    envVars:
+      - key: INTERNAL_API_KEY
+        generateValue: true      # Render generates one value, shared by both backends
 
 services:
   # --- Redis (managed Key Value) ---
   - type: keyvalue
     name: genie-redis
     plan: free
-    ipAllowList: []            # internal only; no public access
+    ipAllowList: []              # internal only
     maxmemoryPolicy: noeviction
 
-  # --- genie-service (private; only conversation-service reaches it) ---
-  - type: pserv
+  # --- genie-service (public, but guarded by INTERNAL_API_KEY) ---
+  - type: web
     name: genie-service
     runtime: docker
     rootDir: genie-service
     dockerfilePath: ./Dockerfile
-    plan: starter
+    plan: free
+    healthCheckPath: /health
     envVars:
+      - fromGroup: internal-auth
       - key: DATABRICKS_HOST
         sync: false
       - key: DATABRICKS_TOKEN
-        sync: false            # paste the ROTATED token in the dashboard
+        sync: false             # paste the ROTATED token
       - key: GENIE_SPACE_ID
         sync: false
       - key: GENIE_POLL_TIMEOUT
         value: "150"
 
-  # --- conversation-service (public API) ---
+  # --- conversation-service (public API, Google-auth protected) ---
   - type: web
     name: conversation-service
     runtime: docker
     rootDir: conversation-service
     dockerfilePath: ./Dockerfile
-    plan: starter
+    plan: free
     healthCheckPath: /health
     envVars:
+      - fromGroup: internal-auth
       - key: GENIE_SERVICE_URL
         fromService:
-          type: pserv
+          type: web
           name: genie-service
-          property: hostport   # "genie-service:PORT"; app prepends http://
+          property: host        # public hostname; app prepends https://
       - key: REDIS_URL
         fromService:
           type: keyvalue
@@ -57,9 +68,9 @@ services:
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_ALLOWED_DOMAINS
-        sync: false            # e.g. "yourcompany.com" (optional)
+        sync: false
       - key: GOOGLE_ALLOWED_EMAILS
-        sync: false            # e.g. "a@x.com,b@y.com" (optional)
+        sync: false
 
   # --- ui-app (static site) ---
   - type: web
@@ -73,9 +84,9 @@ services:
         fromService:
           type: web
           name: conversation-service
-          property: host       # public hostname; UI prepends https://
+          property: host        # public hostname; UI prepends https://
       - key: VITE_GOOGLE_CLIENT_ID
-        sync: false            # same Google client id as the backend
+        sync: false
     routes:
       - type: rewrite
         source: /*

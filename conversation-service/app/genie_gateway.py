@@ -33,9 +33,12 @@ class GenieGateway:
             payload["conversation_id"] = conversation_id
 
         url = f"{self.base}/genie/process-message"
+        headers = {}
+        if self.settings.internal_api_key:
+            headers["X-Internal-Key"] = self.settings.internal_api_key
         async with httpx.AsyncClient(timeout=self.settings.request_timeout) as client:
             try:
-                resp = await client.post(url, json=payload)
+                resp = await client.post(url, json=payload, headers=headers)
             except httpx.RequestError as exc:
                 raise GatewayError(502, f"Could not reach genie-service: {exc}") from exc
         if resp.status_code >= 400:

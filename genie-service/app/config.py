@@ -17,6 +17,9 @@ class Settings:
         # Server-side polling budget for a single process-message operation.
         self.poll_interval: float = float(os.getenv("GENIE_POLL_INTERVAL", "1.5"))
         self.poll_timeout: float = float(os.getenv("GENIE_POLL_TIMEOUT", "150"))
+        # Shared secret; when set, callers must send it as X-Internal-Key.
+        # Blank => guard disabled (local dev).
+        self.internal_api_key: str = os.getenv("INTERNAL_API_KEY", "").strip()
 
     @property
     def auth_header(self) -> dict:

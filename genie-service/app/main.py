@@ -3,12 +3,19 @@
 Only this service holds the Databricks PAT. The conversation-service calls these
 endpoints; it never talks to Databricks directly.
 """
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import get_settings
 from .genie_client import GenieClient, GenieError
 from .models import ProcessRequest
+
+
+async def require_internal_key(x_internal_key: str = Header(default="")) -> None:
+    """Reject calls that don't carry the shared secret (when one is configured)."""
+    key = get_settings().internal_api_key
+    if key and x_internal_key != key:
+        raise HTTPException(status_code=401, detail="Invalid internal key")
 
 app = FastAPI(title="genie-service", version="1.0.0")
 
@@ -38,7 +45,9 @@ def _handle(exc: GenieError) -> HTTPException:
 
 
 @app.post("/genie/process-message")
-async def process_message(body: ProcessRequest) -> dict:
+async def process_message(
+    body: ProcessRequest, _: None = Depends(require_internal_key)
+) -> dict:
     """Single operation: submit the question (start or follow-up), wait for Genie
     to finish, fetch the query result, and return the normalized answer."""
     try:
