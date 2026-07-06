@@ -1,0 +1,42 @@
+# Runs genie-service and conversation-service as containers on the existing
+# `genie-net` network (where the redis + redisinsight containers already live).
+#
+#   docker compose up -d --build
+#
+# The UI (Vite) still runs on the host and talks to conversation-service at
+# http://localhost:8000.
+
+services:
+  genie-service:
+    build: ./genie-service
+    image: genie-nl2sql/genie-service
+    container_name: genie-service
+    env_file:
+      - ./genie-service/.env          # DATABRICKS_HOST / TOKEN / SPACE_ID, poll settings
+    ports:
+      - "8001:8001"
+    networks:
+      - genie-net
+    restart: unless-stopped
+
+  conversation-service:
+    build: ./conversation-service
+    image: genie-nl2sql/conversation-service
+    container_name: conversation-service
+    env_file:
+      - ./conversation-service/.env
+    environment:
+      # Override host-based URLs from .env with in-network container names.
+      GENIE_SERVICE_URL: http://genie-service:8001
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - genie-service
+    ports:
+      - "8000:8000"
+    networks:
+      - genie-net
+    restart: unless-stopped
+
+networks:
+  genie-net:
+    external: true

@@ -1,0 +1,82 @@
+# Render Blueprint for the genie-nl2sql stack.
+# Deploy: push this repo to GitHub, then in Render: New > Blueprint > pick the repo.
+# Secrets marked `sync: false` must be filled in the Render dashboard.
+#
+# Components:
+#   genie-redis          - managed Key Value (Redis) store
+#   genie-service        - PRIVATE service (holds the Databricks PAT; not public)
+#   conversation-service - public API, protected by Google token verification
+#   ui-app               - static site (Vite build) with Google Sign-In
+
+services:
+  # --- Redis (managed Key Value) ---
+  - type: keyvalue
+    name: genie-redis
+    plan: free
+    ipAllowList: []            # internal only; no public access
+    maxmemoryPolicy: noeviction
+
+  # --- genie-service (private; only conversation-service reaches it) ---
+  - type: pserv
+    name: genie-service
+    runtime: docker
+    rootDir: genie-service
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    envVars:
+      - key: DATABRICKS_HOST
+        sync: false
+      - key: DATABRICKS_TOKEN
+        sync: false            # paste the ROTATED token in the dashboard
+      - key: GENIE_SPACE_ID
+        sync: false
+      - key: GENIE_POLL_TIMEOUT
+        value: "150"
+
+  # --- conversation-service (public API) ---
+  - type: web
+    name: conversation-service
+    runtime: docker
+    rootDir: conversation-service
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: GENIE_SERVICE_URL
+        fromService:
+          type: pserv
+          name: genie-service
+          property: hostport   # "genie-service:PORT"; app prepends http://
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: genie-redis
+          property: connectionString
+      - key: CONVERSATION_REQUEST_TIMEOUT
+        value: "180"
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_ALLOWED_DOMAINS
+        sync: false            # e.g. "yourcompany.com" (optional)
+      - key: GOOGLE_ALLOWED_EMAILS
+        sync: false            # e.g. "a@x.com,b@y.com" (optional)
+
+  # --- ui-app (static site) ---
+  - type: web
+    name: ui-app
+    runtime: static
+    rootDir: ui-app
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_CONVERSATION_API
+        fromService:
+          type: web
+          name: conversation-service
+          property: url        # https URL of the API
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false            # same Google client id as the backend
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
