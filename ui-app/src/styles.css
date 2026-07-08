@@ -15,16 +15,25 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  height: 100%;
+}
+
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Lock the page: only the chat body scrolls, not the whole page. */
+  overflow: hidden;
 }
 
 .layout {
   display: flex;
+  position: relative;
   height: 100vh;
+  height: 100dvh; /* dvh accounts for mobile browser UI (address bar) */
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -33,8 +42,10 @@ body {
   flex: 1;
   min-width: 0;
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* header/composer stay put; only .chat scrolls */
 }
 
 /* --- History sidebar --- */
@@ -159,6 +170,7 @@ body {
   border-bottom: 1px solid var(--border);
   position: relative;
   text-align: center;
+  flex-shrink: 0; /* fixed; never scrolls away */
 }
 .header h1 {
   margin: 0 0 4px;
@@ -244,7 +256,9 @@ body {
 
 .chat {
   flex: 1;
+  min-height: 0; /* required so the scroll area works inside the flex column */
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* momentum scroll on iOS */
   padding: 20px 24px;
   display: flex;
   flex-direction: column;
@@ -434,6 +448,7 @@ tbody tr:hover {
   gap: 10px;
   padding: 16px 24px;
   border-top: 1px solid var(--border);
+  flex-shrink: 0; /* fixed footer; never scrolls away */
 }
 .composer textarea {
   flex: 1;
@@ -462,4 +477,51 @@ tbody tr:hover {
 .composer button:disabled {
   opacity: 0.5;
   cursor: default;
+}
+
+/* --- Mobile --- */
+@media (max-width: 640px) {
+  .header {
+    padding: 14px 60px 10px; /* room for ☰ (left) and Sign out (right) */
+  }
+  .header h1 {
+    font-size: 18px;
+  }
+  .header p {
+    display: none; /* save vertical space */
+  }
+
+  .chat {
+    padding: 14px;
+  }
+  .composer {
+    padding: 12px;
+  }
+  .composer button {
+    padding: 0 16px;
+  }
+
+  /* Sidebar overlays the chat instead of squashing it */
+  .sidebar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    z-index: 20;
+    box-shadow: 2px 0 16px rgba(0, 0, 0, 0.2);
+  }
+  .sidebar-toggle {
+    z-index: 30; /* stay clickable above the open sidebar */
+    top: 12px;
+    left: 12px;
+  }
+
+  .user-chip {
+    top: 12px;
+    right: 12px;
+    gap: 6px;
+  }
+  .user-email {
+    display: none; /* keep just the avatar + Sign out on small screens */
+  }
 }
