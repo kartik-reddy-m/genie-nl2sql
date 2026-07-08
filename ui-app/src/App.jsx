@@ -34,6 +34,7 @@ export default function App() {
   const [conversationId, setConversationId] = useState(null);
   const [history, setHistory] = useState([]);
   const [user, setUser] = useState(getUser());
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   async function loadHistory() {
     try {
@@ -142,7 +143,7 @@ export default function App() {
 
   return (
     <div className="layout">
-      <aside className="sidebar">
+      <aside className={"sidebar" + (sidebarOpen ? "" : " collapsed")}>
         <div className="sidebar-header">
           <span>History</span>
           <button className="new-btn" onClick={newConversation} disabled={busy}>
@@ -180,6 +181,14 @@ export default function App() {
 
       <div className="app">
         <header className="header">
+          <button
+            className="sidebar-toggle"
+            onClick={() => setSidebarOpen((o) => !o)}
+            title={sidebarOpen ? "Hide history" : "Show history"}
+            aria-label="Toggle history"
+          >
+            ☰
+          </button>
           <h1>Ask Mits AI</h1>
           <p>Ask a question in plain English. Databricks Genie writes the SQL and returns the data.</p>
           {authEnabled && user && (

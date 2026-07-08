@@ -45,6 +45,33 @@ body {
   background: var(--panel);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  transition: width 0.2s ease, border-width 0.2s ease;
+}
+.sidebar.collapsed {
+  width: 0;
+  border-right-width: 0;
+}
+
+.sidebar-toggle {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sidebar-toggle:hover {
+  background: var(--border);
 }
 .sidebar-header {
   display: flex;
