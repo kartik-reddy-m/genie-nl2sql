@@ -201,19 +201,17 @@ export default function App() {
           <h1>Ask Mits AI</h1>
           <p>Ask a question in plain English. Databricks Genie writes the SQL and returns the data.</p>
           {authEnabled && user && (
-            <div className="user-chip">
-              {user.picture && <img src={user.picture} alt="" />}
-              <span className="user-email">{user.email}</span>
-              <button
-                className="signout"
-                onClick={() => {
-                  signOut();
-                  setUser(null);
-                }}
-              >
-                Sign out
-              </button>
-            </div>
+            <UserMenu
+              user={user}
+              onSignOut={() => {
+                signOut();
+                setUser(null);
+              }}
+              onChangeAccount={() => {
+                signOut();
+                setUser(null);
+              }}
+            />
           )}
         </header>
 
@@ -300,6 +298,60 @@ function formatTime(epoch) {
   return sameDay
     ? d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
     : d.toLocaleDateString([], { month: "short", day: "numeric" });
+}
+
+function UserMenu({ user, onSignOut, onChangeAccount }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDocClick(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [open]);
+
+  return (
+    <div className="user-menu" ref={ref}>
+      <button className="user-chip" onClick={() => setOpen((o) => !o)}>
+        {user.picture && <img src={user.picture} alt="" />}
+        <span className="user-email">{user.name || user.email}</span>
+        <span className="caret">▾</span>
+      </button>
+
+      {open && (
+        <div className="user-dropdown">
+          <div className="user-info">
+            {user.picture && <img src={user.picture} alt="" />}
+            <div className="user-info-text">
+              <div className="user-name">{user.name || "Signed in"}</div>
+              <div className="user-sub">{user.email}</div>
+            </div>
+          </div>
+          <button
+            className="menu-item"
+            onClick={() => {
+              setOpen(false);
+              onChangeAccount();
+            }}
+          >
+            Change account
+          </button>
+          <button
+            className="menu-item danger"
+            onClick={() => {
+              setOpen(false);
+              onSignOut();
+            }}
+          >
+            Sign out
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function LoginGate({ onSignedIn }) {
