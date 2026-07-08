@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { format as formatSql } from "sql-formatter";
@@ -35,6 +35,15 @@ export default function App() {
   const [history, setHistory] = useState([]);
   const [user, setUser] = useState(getUser());
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const textareaRef = useRef(null);
+
+  // Auto-grow the input: one line by default, taller as the question grows.
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 160) + "px";
+  }, [question]);
 
   async function loadHistory() {
     try {
@@ -219,11 +228,12 @@ export default function App() {
 
         <footer className="composer">
           <textarea
+            ref={textareaRef}
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={onKeyDown}
             placeholder="Ask a question…"
-            rows={2}
+            rows={1}
             disabled={busy}
           />
           <button onClick={ask} disabled={busy || !question.trim()}>

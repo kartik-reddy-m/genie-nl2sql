@@ -445,6 +445,7 @@ tbody tr:hover {
 
 .composer {
   display: flex;
+  align-items: flex-end; /* keep the Ask button at the bottom as the input grows */
   gap: 10px;
   padding: 16px 24px;
   border-top: 1px solid var(--border);
@@ -460,6 +461,10 @@ tbody tr:hover {
   padding: 10px 12px;
   font-family: inherit;
   font-size: 14px;
+  line-height: 1.4;
+  max-height: 160px; /* grows with the question, then scrolls */
+  overflow-y: auto;
+  display: block;
 }
 .composer textarea:focus {
   outline: none;
