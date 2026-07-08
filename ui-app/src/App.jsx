@@ -34,7 +34,7 @@ export default function App() {
   const [conversationId, setConversationId] = useState(null);
   const [history, setHistory] = useState([]);
   const [user, setUser] = useState(getUser());
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   async function loadHistory() {
     try {
