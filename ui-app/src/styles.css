@@ -528,6 +528,7 @@ tbody tr:hover {
   font-family: inherit;
   font-size: 14px;
   line-height: 1.4;
+  min-height: 44px; /* single-line height; matches the Ask button */
   max-height: 160px; /* grows with the question, then scrolls */
   overflow-y: auto;
   display: block;
@@ -542,6 +543,7 @@ tbody tr:hover {
   border: none;
   border-radius: 10px;
   padding: 0 20px;
+  height: 44px; /* matches the input box's single-line height */
   font-weight: 600;
   cursor: pointer;
 }

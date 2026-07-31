@@ -35,7 +35,7 @@ async def _startup() -> None:
     get_settings().validate()
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health() -> dict:
     return {"status": "ok", "service": "genie-service"}
 

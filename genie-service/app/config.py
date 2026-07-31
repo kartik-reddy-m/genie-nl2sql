@@ -15,7 +15,7 @@ class Settings:
         self.genie_space_id: str = os.getenv("GENIE_SPACE_ID", "")
         self.request_timeout: float = float(os.getenv("GENIE_REQUEST_TIMEOUT", "60"))
         # Server-side polling budget for a single process-message operation.
-        self.poll_interval: float = float(os.getenv("GENIE_POLL_INTERVAL", "1.5"))
+        self.poll_interval: float = float(os.getenv("GENIE_POLL_INTERVAL", "2.5"))
         self.poll_timeout: float = float(os.getenv("GENIE_POLL_TIMEOUT", "150"))
         # Shared secret; when set, callers must send it as X-Internal-Key.
         # Blank => guard disabled (local dev).
