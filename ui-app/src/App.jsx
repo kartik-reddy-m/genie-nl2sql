@@ -439,9 +439,14 @@ function LoginGate({ onSignedIn }) {
   return (
     <div className="login">
       <div className="login-card">
-        <h1>Ask Mits AI</h1>
-        <p>Sign in with Google to continue.</p>
+        <div className="login-badge">🎓</div>
+        <h1 className="login-title">Ask Mits AI</h1>
+        <p className="login-tagline">
+          Your student-data assistant. Ask about CGPA, mentors, and student
+          details — in plain English.
+        </p>
         <div id="gbtn" className="gbtn" />
+        <p className="login-foot">For faculty · sign in with your Google account</p>
       </div>
     </div>
   );
