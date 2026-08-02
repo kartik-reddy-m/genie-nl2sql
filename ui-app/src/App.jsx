@@ -148,10 +148,12 @@ export default function App() {
     setConversationId(null);
     setMessages([]);
     setQuestion("");
+    setSidebarOpen(false);
   }
 
   async function openConversation(id) {
     if (busy) return;
+    setSidebarOpen(false); // close the panel once a chat is picked (esp. on mobile)
     try {
       const conv = await getConversation(id);
       setMessages(conv.messages || []);
@@ -175,6 +177,12 @@ export default function App() {
 
   return (
     <div className="layout">
+      {sidebarOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
       <aside className={"sidebar" + (sidebarOpen ? "" : " collapsed")}>
         <div className="sidebar-header">
           <span>History</span>
