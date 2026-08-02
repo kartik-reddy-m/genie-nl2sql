@@ -229,7 +229,7 @@ export default function App() {
           >
             ☰
           </button>
-          <h1>Ask Mits AI</h1>
+          <h1>MITS Campus Query</h1>
           <p>Ask about students' CGPA, mentors, and details — in plain English.</p>
           {authEnabled && user && (
             <UserMenu
@@ -448,7 +448,7 @@ function LoginGate({ onSignedIn }) {
     <div className="login">
       <div className="login-card">
         <div className="login-badge">🎓</div>
-        <h1 className="login-title">Ask Mits AI</h1>
+        <h1 className="login-title">MITS Campus Query</h1>
         <p className="login-tagline">
           Your student-data assistant. Ask about CGPA, mentors, and student
           details — in plain English.
