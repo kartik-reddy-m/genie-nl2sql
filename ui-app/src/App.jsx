@@ -229,7 +229,10 @@ export default function App() {
           >
             ☰
           </button>
-          <h1>MITS Campus Query</h1>
+          <div className="brand">
+            <img className="brand-logo" src="/logo.png" alt="MITS AI & ML" />
+            <h1>MITS Campus Query</h1>
+          </div>
           <p>Ask about students' CGPA, mentors, and details — in plain English.</p>
           {authEnabled && user && (
             <UserMenu
