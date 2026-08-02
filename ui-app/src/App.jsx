@@ -27,6 +27,13 @@ function prettySql(sql) {
   }
 }
 
+const SUGGESTIONS = [
+  "Top 5 students by CGPA",
+  "How many students have CGPA above 9?",
+  "Students mentored by Dr. S. Padma",
+  "What is the average CGPA?",
+];
+
 export default function App() {
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState([]); // {role, text, sql, result, error, status}
@@ -79,8 +86,8 @@ export default function App() {
     });
   }
 
-  async function ask() {
-    const q = question.trim();
+  async function ask(preset) {
+    const q = (typeof preset === "string" ? preset : question).trim();
     if (!q || busy) return;
 
     setBusy(true);
@@ -199,7 +206,7 @@ export default function App() {
             ☰
           </button>
           <h1>Ask Mits AI</h1>
-          <p>Ask a question in plain English. Databricks Genie writes the SQL and returns the data.</p>
+          <p>Ask about students' CGPA, mentors, and details — in plain English.</p>
           {authEnabled && user && (
             <UserMenu
               user={user}
@@ -217,7 +224,22 @@ export default function App() {
 
         <main className="chat">
           {messages.length === 0 && (
-            <div className="empty">Try: “Show total sales by region for last quarter.”</div>
+            <div className="empty">
+              <div className="empty-title">Ask about your students in plain English</div>
+              <div className="empty-sub">Try one of these to get started:</div>
+              <div className="suggestions">
+                {SUGGESTIONS.map((s) => (
+                  <button
+                    key={s}
+                    className="suggestion"
+                    onClick={() => ask(s)}
+                    disabled={busy}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
           {messages.map((m, i) => (
             <Bubble key={i} m={m} />
@@ -275,7 +297,16 @@ function Bubble({ m }) {
       {m.sql && (
         <details className="sql">
           <summary>Show SQL</summary>
-          <pre>{prettySql(m.sql)}</pre>
+          <div className="sql-body">
+            <button
+              className="copy-btn"
+              onClick={() => navigator.clipboard?.writeText(prettySql(m.sql))}
+              title="Copy SQL"
+            >
+              Copy
+            </button>
+            <pre>{prettySql(m.sql)}</pre>
+          </div>
         </details>
       )}
     </div>

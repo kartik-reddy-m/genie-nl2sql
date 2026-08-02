@@ -23,9 +23,37 @@ async function handle(res) {
   }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(`${res.status} ${res.statusText} ${text}`.trim());
+    throw new Error(friendlyError(res.status, text));
   }
   return res.json();
+}
+
+// Turn raw server errors (JSON details, HTML 502 pages, rate limits) into
+// short, human-friendly messages.
+function friendlyError(status, text) {
+  if (status === 429)
+    return "The system is busy right now (too many requests). Please wait a few seconds and try again.";
+  if (status === 502 || status === 503 || status === 504)
+    return "The service is waking up. Please try again in a few seconds.";
+
+  const t = (text || "").trim();
+  if (t.startsWith("{")) {
+    try {
+      const detail = JSON.parse(t).detail;
+      // Ignore nested HTML error pages; only surface short, clean details.
+      if (
+        typeof detail === "string" &&
+        detail.trim() &&
+        !detail.trim().startsWith("<") &&
+        detail.length < 200
+      ) {
+        return detail;
+      }
+    } catch {
+      /* not JSON */
+    }
+  }
+  return `Something went wrong (error ${status}). Please try again.`;
 }
 
 // Both calls block until Genie has finished and return the fully-resolved
