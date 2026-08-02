@@ -32,20 +32,34 @@ class GenieClient:
         )
 
     async def _request(self, method: str, url: str, **kwargs) -> dict:
-        async with httpx.AsyncClient(timeout=self.settings.request_timeout) as client:
-            try:
-                resp = await client.request(
-                    method, url, headers=self.settings.auth_header, **kwargs
-                )
-            except httpx.RequestError as exc:
-                raise GenieError(502, f"Could not reach Databricks: {exc}") from exc
+        # Databricks Genie rate-limits (429); back off and retry a few times.
+        max_retries = 4
+        for attempt in range(max_retries + 1):
+            async with httpx.AsyncClient(
+                timeout=self.settings.request_timeout
+            ) as client:
+                try:
+                    resp = await client.request(
+                        method, url, headers=self.settings.auth_header, **kwargs
+                    )
+                except httpx.RequestError as exc:
+                    raise GenieError(502, f"Could not reach Databricks: {exc}") from exc
 
-        if resp.status_code >= 400:
-            raise GenieError(resp.status_code, resp.text)
+            if resp.status_code == 429 and attempt < max_retries:
+                # Honor Retry-After if present, else exponential-ish backoff.
+                retry_after = resp.headers.get("Retry-After")
+                delay = float(retry_after) if retry_after else 2.0 * (attempt + 1)
+                await asyncio.sleep(delay)
+                continue
 
-        if not resp.content:
-            return {}
-        return resp.json()
+            if resp.status_code >= 400:
+                raise GenieError(resp.status_code, resp.text)
+
+            return resp.json() if resp.content else {}
+
+        raise GenieError(
+            429, "Databricks is rate-limiting requests. Please try again shortly."
+        )
 
     # --- Genie operations -------------------------------------------------
 

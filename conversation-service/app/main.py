@@ -55,7 +55,7 @@ async def _persist(
         log.warning("Failed to persist conversation %s: %s", conversation_id, exc)
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health() -> dict:
     return {
         "status": "ok",
