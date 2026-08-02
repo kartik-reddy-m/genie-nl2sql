@@ -70,6 +70,22 @@ export default function App() {
     loadHistory();
   }, [user]);
 
+  // Auto-return to the login page the moment the token expires.
+  useEffect(() => {
+    if (!authEnabled || !user?.exp) return;
+    const msLeft = user.exp * 1000 - Date.now();
+    const logout = () => {
+      setToken("");
+      setUser(null);
+    };
+    if (msLeft <= 0) {
+      logout();
+      return;
+    }
+    const timer = setTimeout(logout, msLeft);
+    return () => clearTimeout(timer);
+  }, [user]);
+
   if (authEnabled && !user) {
     return <LoginGate onSignedIn={() => setUser(getUser())} />;
   }
